@@ -1,0 +1,22 @@
+categories:
+- name: Self-hosted
+  links:
+  - title: Home Assistant
+    url: http://homeassistant.local:8123
+    icon: favicon
+- name: Social
+  links:
+  - title: X
+    url: https://x.com
+    icon: favicon
+  - title: Reddit
+    url: https://reddit.com
+    icon: favicon
+- name: Development
+  links:
+  - title: GitHub
+    url: https://github.com
+    icon: github
+  - title: Vercel
+    url: https://vercel.com
+    icon: favicon

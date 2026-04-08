@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homelab Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SortableJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i data-lucide="layout-grid"></i>
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="search-bar">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="searchInput" placeholder="Search links...">
+                </div>
+                <div class="header-actions">
+                    <button id="addCardBtn" class="btn btn-primary">
+                        <i data-lucide="plus"></i>
+                        <span>Add Card</span>
+                    </button>
+                    <button id="editBtn" class="btn-icon" title="Edit YAML Configuration">
+                        <i data-lucide="code"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="greeting-container">
+                <h2 id="greeting">Good Morning</h2>
+                <div id="clock">00:00:00</div>
+                <div id="date">Loading date...</div>
+            </div>
+            <div id="weather" class="weather-widget">
+                <div class="weather-icon">
+                    <i data-lucide="cloud-sun"></i>
+                </div>
+                <div class="weather-info">
+                    <div id="temp">--°C</div>
+                    <div id="condition">Loading weather...</div>
+                </div>
+            </div>
+        </section>
+
+        <div id="categoriesContainer">
+            {% for category in categories %}
+            <section class="category" data-category="{{ category.name }}">
+                <div class="category-header">
+                    <h2>{{ category.name }}</h2>
+                    <div class="category-actions">
+                        <i data-lucide="grip-vertical" class="drag-handle-category"></i>
+                    </div>
+                </div>
+                <div class="grid sortable-grid">
+                    {% for link in category.links %}
+                    <div class="card-wrapper" data-id="{{ link.title }}">
+                        <a href="{{ link.url }}" class="card" target="_blank" data-title="{{ link.title }}" data-url="{{ link.url }}">
+                            <div class="card-icon">
+                                <div class="status-dot" data-url="{{ link.url }}"></div>
+                                {% if link.icon == 'favicon' or not link.icon %}
+                                    <img src="https://www.google.com/s2/favicons?sz=128&domain={{ link.url }}" alt="{{ link.title }} icon" class="favicon">
+                                {% else %}
+                                    <i data-lucide="{{ link.icon }}"></i>
+                                {% endif %}
+                            </div>
+                            <div class="card-content">
+                                <h3>{{ link.title }}</h3>
+                                <span>{{ link.url | replace('http://', '') | replace('https://', '') | truncate(30) }}</span>
+                            </div>
+                        </a>
+                        <div class="card-actions">
+                            <button class="edit-card-btn" data-category="{{ category.name }}" data-title="{{ link.title }}" data-url="{{ link.url }}" data-icon="{{ link.icon or 'favicon' }}">
+                                <i data-lucide="pencil"></i>
+                            </button>
+                            <button class="delete-card" data-category="{{ category.name }}" data-title="{{ link.title }}">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Modal for Adding/Editing Card -->
+    <div id="addCardModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Card</h2>
+                <button id="closeAddModal" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <form id="addCardForm" class="modal-body">
+                <input type="hidden" id="originalTitle">
+                <input type="hidden" id="originalCategory">
+                <div class="form-group">
+                    <label for="cardCategory">Category</label>
+                    <input type="text" id="cardCategory" list="categoryList" placeholder="Select or type a new category" required>
+                    <datalist id="categoryList">
+                        {% for category in categories %}
+                        <option value="{{ category.name }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="cardTitle">Title</label>
+                    <input type="text" id="cardTitle" placeholder="e.g. My Website" required>
+                </div>
+                <div class="form-group">
+                    <label for="cardUrl">URL</label>
+                    <input type="url" id="cardUrl" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label for="cardIcon">Icon (Lucide name or 'favicon')</label>
+                    <input type="text" id="cardIcon" placeholder="favicon" value="favicon">
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="submit" form="addCardForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Editing YAML (Hidden initially) -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Raw Configuration</h2>
+                <button id="closeModal" class="btn-icon"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Advanced: Edit the underlying YAML configuration directly.</p>
+                <textarea id="configJson" rows="20"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="saveBtn" class="btn btn-primary">Save YAML</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

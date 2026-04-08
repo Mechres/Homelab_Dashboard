@@ -1,4 +1,5 @@
 # Dashboard Application
+<img width="973" height="755" alt="screenshot" src="https://github.com/user-attachments/assets/87aef2bb-7f79-4202-a679-3ef2d1c99f93" />
 
 A simple web dashboard to organize and monitor your self-hosted services and favorite links.
 
